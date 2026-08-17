@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Saykor--Nodes-181717?logo=github)](https://github.com/saykor-com/ComfyUI_Saykor_Nodes)
-[![Get your FreeBuff agent](https://img.shields.io/badge/Get_Your_Free_Agent-Freebuff_with_DeepSeek_4-orange)](https://freebuff.com/get-started?ref=ref-ee15e48c-37db-406d-a11b-ab985497e620&referrer=Dimitar+Todorov)
+[![Get your FreeBuff agent](https://img.shields.io/badge/Get_Your_Free_Agent-Freebuff_with_DeepSeek_4-orange)](https://freebuff.com/get-started?ref=ref-8e22a268-381c-4c27-848f-bc0cfb305208&referrer=saykor-com)
 
 Practical ComfyUI custom nodes built for real-world workflow improvements. Focused on safe image handling, latent mode switching, and LTX video sequencing — with optional image inputs that never break your graph.
 
