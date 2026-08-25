@@ -1,9 +1,7 @@
 import { app } from "../../../scripts/app.js";
 
-// Global registry to track all Saykor LTX Sequencer nodes across all subgraphs
 window._SaykorLTXSequencerGlobalNodes = window._SaykorLTXSequencerGlobalNodes || new Set();
 
-// ComfyUI native trick to cleanly hide/show widgets without deleting them
 function toggleWidget(widget, visible) {
     if (visible) {
         if (widget.origType !== undefined) {
@@ -22,23 +20,15 @@ function toggleWidget(widget, visible) {
     }
 }
 
-/**
- * FULL STATE SYNC:
- * Instead of syncing one widget, we push the entire properties object
- * to ensure no values are ever lost during subgraph transitions or deletions.
- */
 function syncFullStateAcrossNodes(sourceNode) {
     if (!window._SaykorLTXSequencerGlobalNodes) return;
 
     for (const targetNode of window._SaykorLTXSequencerGlobalNodes) {
         if (targetNode === sourceNode) continue;
 
-        // 1. Mirror the properties object completely
-        // Use a shallow copy to avoid accidentally sharing object references
         const newState = { ...sourceNode.properties };
         targetNode.properties = { ...targetNode.properties, ...newState };
 
-        // 2. Check if we need to rebuild the widget list (if num_images changed)
         const targetImageCount = targetNode.properties["num_images"] || 0;
         const currentVisibleCount = targetNode._currentImageCount;
 
@@ -46,7 +36,6 @@ function syncFullStateAcrossNodes(sourceNode) {
             targetNode._applyWidgetCount(targetImageCount);
         }
 
-        // 3. Update all existing widget values visually
         if (targetNode.widgets) {
             let modeChanged = false;
             targetNode.widgets.forEach(w => {
@@ -67,19 +56,16 @@ function syncFullStateAcrossNodes(sourceNode) {
 }
 
 app.registerExtension({
-    name: "Comfy.SaykorNodesLTXSequencer.DynamicInputs",
+    name: "Comfy.SaykorNodesLTXSequencerICLora.DynamicInputs",
     async nodeCreated(node) {
-        if (node.comfyClass !== "saykor_ltx_sequencer_with_ic_lora") return;
+        if (node.comfyClass !== "saykor_ltx_sequencer_ic_lora") return;
 
-        // Register this node instance globally
         window._SaykorLTXSequencerGlobalNodes.add(node);
 
-        node._currentImageCount = -1; // Force first update
+        node._currentImageCount = -1;
 
-        // Initialize persistent properties cache
         node.properties = node.properties || {};
 
-        // Add subtle separator line above images_loaded
         node.addCustomWidget({
             name: "num_images_separator",
             type: "text",
@@ -98,7 +84,6 @@ app.registerExtension({
             }
         });
 
-        // Move separator before num_images
         const moveSeparator = () => {
             const idx = node.widgets.findIndex(w => w.name === "num_images");
             const sepIdx = node.widgets.findIndex(w => w.name === "num_images_separator");
@@ -109,7 +94,6 @@ app.registerExtension({
         };
         setTimeout(moveSeparator, 50);
 
-        // Binds custom callbacks to python-schema generated widgets
         node._hookStaticWidgets = function() {
             if (!this.widgets) return;
             const staticNames = ["num_images", "insert_mode", "frame_rate"];
@@ -124,7 +108,6 @@ app.registerExtension({
                             this._applyWidgetCount(val);
                         }
 
-                        // Push full state to siblings
                         syncFullStateAcrossNodes(this);
 
                         if (name === "insert_mode") {
@@ -137,7 +120,6 @@ app.registerExtension({
             });
         };
 
-        // Handles show/hiding widgets based on insertion method
         node._updateVisibility = function() {
             const mode = this.properties["insert_mode"] || "frames";
             if (!this.widgets) return;
@@ -172,7 +154,6 @@ app.registerExtension({
             }
         };
 
-        // Core update: synchronize widget visibility to match imageCount
         node._applyWidgetCount = function(count) {
             this._hookStaticWidgets();
 
@@ -187,7 +168,6 @@ app.registerExtension({
                 numWidget.value = Math.max(0, Math.min(count || 0, 50));
             }
 
-            // 1. Update properties from current widget values before restructuring
             if (this.widgets) {
                 this.widgets.forEach(w => {
                     if (w.name.startsWith("insert_") || w.name.startsWith("strength_") || ["num_images", "insert_mode", "frame_rate"].includes(w.name)) {
@@ -196,7 +176,6 @@ app.registerExtension({
                 });
             }
 
-            // 2. Clear dynamic widgets
             if (this.widgets) {
                 this.widgets = this.widgets.filter(w =>
                     !w.name.startsWith("insert_frame_") &&
@@ -208,9 +187,7 @@ app.registerExtension({
                 this.widgets = [];
             }
 
-            // 3. Rebuild precisely
             for (let i = 1; i <= count; i++) {
-                // Header
                 const headerName = `header_${i}`;
                 this.addCustomWidget({
                     name: headerName,
@@ -235,7 +212,6 @@ app.registerExtension({
                     computeSize(width) { return [width, 35]; }
                 });
 
-                // Helper to add widget with full sync
                 const addSyncedWidget = (type, name, def, options) => {
                     const saved = this.properties[name];
                     return this.addWidget(type, name, saved !== undefined ? saved : def, (val) => {
@@ -347,7 +323,7 @@ app.registerExtension({
             let multiImageLoaders = [];
             function findAllLoaders(nodes) {
                 if (!nodes) return;
-                for (let n of nodes) {
+                for (const n of nodes) {
                     if (n.comfyClass === "MultiImageLoader") multiImageLoaders.push(n);
                     if (n.subgraph?._nodes) findAllLoaders(n.subgraph._nodes);
                 }
@@ -365,7 +341,7 @@ app.registerExtension({
             const count = readSourceImageCount(node);
             if (count !== null && count !== node._currentImageCount) {
                 node._applyWidgetCount(count);
-                syncFullStateAcrossNodes(node); // Sync the new count to others
+                syncFullStateAcrossNodes(node);
             }
         }, 500);
 

@@ -21,7 +21,7 @@ except ImportError:
         return None
 
 
-class SaykorLTXSequencerWithICLora:
+class SaykorLTXSequencerICLora:
     DESCRIPTION = (
         "High-performance LTX sequencer with integrated IC-LoRA Video guidance.\n"
         "Bypasses slow timeline managers for raw generation speeds."
@@ -45,7 +45,7 @@ class SaykorLTXSequencerWithICLora:
             "strength_sync": ("BOOLEAN", {"default": True}),
             "bypass": ("BOOLEAN", {"default": False}),
             # IC-LoRA video control input
-            "control_video": ("IMAGE",),  # Your Canny/Depth/Pose video
+            "control_video": ("IMAGE",),
             "ic_lora_strength": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 2.0, "step": 0.01}),
             "video_start_frame": ("INT", {"default": 0, "min": 0, "max": 9999}),
         }
@@ -89,29 +89,24 @@ class SaykorLTXSequencerWithICLora:
         # STEP 1: IC-LoRA VIDEO PROCESSING (runs before the sequencer)
         # ------------------------------------------------------------------
         if control_video is not None and ic_lora_strength > 0.0:
-            # Resize video to match the latent at pixel level
             pixel_w = latent_width * scale_factors[2]
             pixel_h = latent_height * scale_factors[1]
 
-            # Reference video is in [B, H, W, C]; convert to PyTorch [B, C, H, W]
             video_resized = control_video.permute(0, 3, 1, 2)
             video_resized = F.interpolate(video_resized, size=(pixel_h, pixel_w), mode="bilinear", align_corners=False)
-            video_resized = video_resized.permute(0, 2, 3, 1)  # Back to standard Comfy format
+            video_resized = video_resized.permute(0, 2, 3, 1)
 
-            # Trim video frames to match the maximum latent length
             max_pixel_frames = latent_length * scale_factors[0]
             video_cut = video_resized[video_start_frame : video_start_frame + max_pixel_frames]
 
-            # Encode video guidance through VAE
             encoded_video_img, encoded_video_latent = LTXVAddGuide.encode(
                 vae, latent_width, latent_height, video_cut, scale_factors
             )
 
-            # Apply video control to prompts
             positive, negative, latent_image, noise_mask = LTXVAddGuide.append_keyframe(
                 positive,
                 negative,
-                0,  # Start from the first latent frame
+                0,
                 latent_image,
                 noise_mask,
                 encoded_video_latent,
@@ -154,7 +149,6 @@ class SaykorLTXSequencerWithICLora:
             )
 
             if latent_idx + encoded_latent.shape[2] > latent_length:
-                # Skip if out of bounds instead of crashing the entire process
                 continue
 
             positive, negative, latent_image, noise_mask = LTXVAddGuide.append_keyframe(
@@ -171,12 +165,10 @@ class SaykorLTXSequencerWithICLora:
         return (positive, negative, {"samples": latent_image, "noise_mask": noise_mask})
 
 
-# Node mappings for ComfyUI registration
-# All Saykor nodes use the "saykor_" prefix for node class IDs
 NODE_CLASS_MAPPINGS = {
-    "saykor_ltx_sequencer_with_ic_lora": SaykorLTXSequencerWithICLora,
+    "saykor_ltx_sequencer_ic_lora": SaykorLTXSequencerICLora,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "saykor_ltx_sequencer_with_ic_lora": "(Saykor) LTX Sequencer with IC-LoRA",
+    "saykor_ltx_sequencer_ic_lora": "(Saykor) LTX Sequencer with IC-LoRA",
 }

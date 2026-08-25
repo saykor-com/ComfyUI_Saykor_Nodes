@@ -8,7 +8,7 @@ from .saykor_latent_selector import (
     NODE_CLASS_MAPPINGS as _mappings_latent,
     NODE_DISPLAY_NAME_MAPPINGS as _display_latent,
 )
-from .saykor_ltx_sequencer import (
+from .saykor_ltx_sequencer_ic_lora import (
     NODE_CLASS_MAPPINGS as _mappings_ltx,
     NODE_DISPLAY_NAME_MAPPINGS as _display_ltx,
 )

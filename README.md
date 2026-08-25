@@ -320,10 +320,10 @@ Search for `Saykor Nodes` in ComfyUI Manager and install directly.
 ComfyUI_Saykor_Nodes/
 ├── __init__.py                          # Node registration and exports
 ├── js/
-│   ├── saykor_ltx_sequencer.js          # UI widgets for (Saykor) LTX Sequencer
+│   ├── saykor_ltx_sequencer_ic_lora.js   # UI widgets for (Saykor) LTX Sequencer with IC-LoRA
 │   └── saykor_loadimage.js              # Clear button for (Saykor) Load Image (Safe)
 ├── saykor_latent_selector.py            # (Saykor) Latent Selector (T2I/I2I)
-├── saykor_ltx_sequencer.py              # (Saykor) LTX Sequencer with IC-LoRA
+├── saykor_ltx_sequencer_ic_lora.py        # (Saykor) LTX Sequencer with IC-LoRA
 ├── saykor_is_image_valid.py             # (Saykor) Is Image Valid ?
 ├── saykor_safe_image_loader.py          # (Saykor) Safe Image Loader & Switch
 ├── saykor_loadimage_override.py         # (Saykor) Load Image (Safe)
